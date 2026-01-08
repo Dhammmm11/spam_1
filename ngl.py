@@ -477,7 +477,7 @@ def main_menu():
         print_colored(f"  ║ 2️⃣  Custom Attack Bwabwa                   ║", Colors.YELLOW)
         print_colored(f"  ║ 3️⃣  View Results                           ║", Colors.BLUE)
         print_colored(f"  ║ 4️⃣  Exit                                   ║", Colors.RED)
-        print_coloref(f"  ╚═════════════════════════════════════╝ Colors.CYAN)
+        print_coloref(f"  ╚═════════════════════════════════════╝", Colors.CYAN)
         
         choice = input(f"\n{Colors.CYAN}[?] Select (1-4): {Colors.END}").strip()
         
