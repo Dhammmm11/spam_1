@@ -58,7 +58,7 @@ import random
 from datetime import datetime
 
 # ========== CONFIGURATION ==========
-VERSION = "4.0"
+VERSION = "1.0"
 DEVELOPER = "Marr"
 BANNER = f"""
 {chr(27)}[91m
@@ -70,7 +70,7 @@ BANNER = f"""
 ╠═╣ ║║╠═╣║ ║╠╦╝╠═╣║  ║  ║╣ ╠╦╝
 ╩ ╩═╩╝╩ ╩╚═╝╩╚═╩ ╩╚═╝╩═╝╚═╝╩╚═
 {chr(27)}[93m
-Termux Edition v{VERSION}
+Beta Edition{VERSION}
 Developer: {DEVELOPER}
 {chr(27)}[0m"""
 
@@ -471,12 +471,12 @@ def main_menu():
         show_banner()
         
         print_colored(f"\n╔══════════════════════════════════╗", Colors.CYAN)
-        print_colored(f"║            MAIN MENU  ║", Colors.WHITE)
+        print_colored(f"║            MAIN MENU                  ║", Colors.WHITE)
         print_colored(f"╠══════════════════════════════════╣", Colors.CYAN)
-        print_colored(f"║ 1️⃣  Plenger Attack     ║", Colors.GREEN)
-        print_colored(f"║ 2️⃣  Custom Attack Bwabwa║", Colors.YELLOW)
-        print_colored(f"║ 3️⃣  View Results        ║", Colors.BLUE)
-        print_colored(f"║ 4️⃣  Exit                 ║", Colors.RED)
+        print_colored(f"║ 1️⃣  Plenger Attack                    ║", Colors.GREEN)
+        print_colored(f"║ 2️⃣  Custom Attack Bwabwa              ║", Colors.YELLOW)
+        print_colored(f"║ 3️⃣  View Results                      ║", Colors.BLUE)
+        print_colored(f"║ 4️⃣  Exit                              ║", Colors.RED)
         print_colored(f"╚══════════════════════════════════╝", Colors.CYAN)
         
         choice = input(f"\n{Colors.CYAN}[?] Select (1-4): {Colors.END}").strip()
@@ -524,8 +524,8 @@ def main_menu():
             
             # Threads
             try:
-                threads = int(input(f"{Colors.CYAN}[?] Threads (1-50): {Colors.END}") or "10")
-                threads = max(1, min(50, threads))
+                threads = int(input(f"{Colors.CYAN}[?] Threads (1-150): {Colors.END}") or "10")
+                threads = max(1, min(150, threads))
             except:
                 threads = 10
             
