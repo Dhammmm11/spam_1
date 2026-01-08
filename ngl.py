@@ -12,7 +12,7 @@ Based on 0MeMo07/NGL-Spammer with ENHANCED Features
 Developer: Marr
 """
 
-import requests
+import requirements
 import json
 import time
 import threading
