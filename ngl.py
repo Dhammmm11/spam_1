@@ -1,601 +1,301 @@
 #!/data/data/com.termux/files/usr/bin/python3
 # -*- coding: utf-8 -*-
-"""
-██╗   ██╗ ██████╗ ██╗██████╗    ███╗   ██╗██╗   ██╗██╗  ██╗███████╗██████╗ 
-██║   ██║██╔═══██╗██║██╔══██╗   ████╗  ██║██║   ██║██║ ██╔╝██╔════╝██╔══██╗
-██║   ██║██║   ██║██║██║  ██║   ██╔██╗ ██║██║   ██║█████╔╝ █████╗  ██████╔╝
-╚██╗ ██╔╝██║   ██║██║██║  ██║   ██║╚██╗██║██║   ██║██╔═██╗ ██╔══╝  ██╔══██╗
- ╚████╔╝ ╚██████╔╝██║██████╔╝   ██║ ╚████║╚██████╔╝██║  ██╗███████╗██║  ██║
-  ╚═══╝   ╚═════╝ ╚═╝╚═════╝    ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-VOID NUKER - Ultimate NGL Spammer v4.0
-Developer: Marr 
-"""
 
-import subprocess
-import sys
-import os
-
-# ========== AUTO-INSTALL DEPENDENCIES ==========
-def install_dependencies():
-    """Auto-install required packages"""
-    print("[*] Checking dependencies...")
-    
-    required = {
-        'requests': 'requests',
-        'colorama': 'colorama'
-    }
-    
-    for module, package in required.items():
-        try:
-            __import__(module)
-            print(f"✅ {module} already installed")
-        except ImportError:
-            print(f"⚠️ Installing {module}...")
-            try:
-                subprocess.check_call([
-                    sys.executable, 
-                    "-m", 
-                    "pip", 
-                    "install", 
-                    package,
-                    "--quiet"
-                ])
-                print(f"✅ {module} installed successfully")
-            except Exception as e:
-                print(f"❌ Failed to install {module}: {e}")
-                print("Please run manually: pip install requests colorama")
-                sys.exit(1)
-
-# Run auto-install
-install_dependencies()
-
-# ========== NOW IMPORT EVERYTHING ==========
-import requests
-import json
-import time
-import threading
-import random
+import subprocess, sys, os, requests, json, time, threading, random, string, uuid
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlencode
+from tqdm import tqdm
 
-# ========== CONFIGURATION ==========
-VERSION = "1.0"
-DEVELOPER = "Marr"
-BANNER = f"""
-{chr(27)}[91m
+# ========== AUTO-INSTALL ==========
+def install_deps():
+    reqs = {
+        'requests': 'requests',
+        'colorama': 'colorama',
+        'pysocks': 'PySocks',
+        'tqdm': 'tqdm'
+    }
+    for mod, pkg in reqs.items():
+        try:
+            __import__(mod)
+        except ImportError:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "--quiet"])
+
+install_deps()
+import colorama
+from colorama import Fore, Back, Style
+colorama.init()
+
+# ========== CONFIG ==========
+VERSION = "6.0"
+DEV = "Marr"
+
+BANNER = f"""{Fore.RED}
 ╦  ╦╔═╗╔╦╗╔╦╗  ╔═╗╦ ╦╔═╗╦═╗╔═╗
 ╚╗╔╝╠═╣║║║ ║   ║ ╦║ ║╠═╣╠╦╝║╣ 
  ╚╝ ╩ ╩╩ ╩ ╩   ╚═╝╚═╝╩ ╩╩╚═╚═╝
-{chr(27)}[96m
+{Fore.CYAN}
 ╔═╗╔╦╗╔═╗╔═╗╦═╗╔═╗╔═╗╦  ╔═╗╦═╗
 ╠═╣ ║║╠═╣║ ║╠╦╝╠═╣║  ║  ║╣ ╠╦╝
 ╩ ╩═╩╝╩ ╩╚═╝╩╚═╩ ╩╚═╝╩═╝╚═╝╩╚═
-{chr(27)}[93m
-Beta Edition{VERSION}
-Developer: {DEVELOPER}
-{chr(27)}[0m"""
+{Fore.YELLOW}v{VERSION} - Dev: {DEV}
+{Fore.MAGENTA}「 CUSTOM QUANTITY + ANTI RATE LIMIT 」{Style.RESET_ALL}"""
 
-# ========== ENHANCED USER AGENTS DATABASE (150+ Agents) ==========
+# 200+ USER AGENTS (campuran dari sebelumnya + tambahan)
 USER_AGENTS = [
-    # ========== LATEST CHROME DESKTOP ==========
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-    
-    # ========== FIREFOX LATEST ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 15.0; rv:135.0) Gecko/20100101 Firefox/135.0",
-    "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0) Gecko/20100101 Firefox/135.0",
-    
-    # ========== SAFARI LATEST ==========
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-    
-    # ========== ANDROID CHROME LATEST ==========
-    "Mozilla/5.0 (Linux; Android 15; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; SM-F956B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; SM-A536B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== XIAOMI DEVICES ==========
-    "Mozilla/5.0 (Linux; Android 14; 24031PN0CG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; 23021RAA2Y) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; 22081212UG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== OPPO/REALME/VIVO ==========
-    "Mozilla/5.0 (Linux; Android 14; CPH2581) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; RMX3851) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; V2338) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== GOOGLE PIXEL ==========
-    "Mozilla/5.0 (Linux; Android 15; Pixel 9 Pro XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 15; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; Pixel 7 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== SAMSUNG BROWSER ==========
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/24.0 Chrome/121.0.0.0 Mobile Safari/537.36",
-    
-    # ========== MICROSOFT EDGE ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-    
-    # ========== OPERA ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 OPR/115.0.0.0",
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 OPR/75.0.0.0",
-    
-    # ========== BRAVE BROWSER ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Brave/130.0",
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 Brave/130.0",
-    
-    # ========== VIVALDI ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Vivaldi/6.7",
-    
-    # ========== UC BROWSER ==========
-    "Mozilla/5.0 (Linux; U; Android 14; en-US; SM-S928B Build/UP1A) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.0.0 Mobile Safari/537.36 UCBrowser/15.0.0.0",
-    
-    # ========== DUCKDUCKGO BROWSER ==========
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile DuckDuckGo/5.145.0 Safari/537.36",
-    
-    # ========== FIREFOX MOBILE ==========
-    "Mozilla/5.0 (Android 14; Mobile; rv:135.0) Gecko/135.0 Firefox/135.0",
-    "Mozilla/5.0 (Android 14; Mobile; rv:135.0) Gecko/135.0 Firefox/135.0",
-    
-    # ========== OPERA MINI ==========
-    "Opera/9.80 (Android; Opera Mini/82.0.2254/135.0; U; en) Presto/2.12.423 Version/12.16",
-    
-    # ========== CHROME iOS ==========
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.120 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0.6723.120 Mobile/15E148 Safari/604.1",
-    
-    # ========== FIREFOX iOS ==========
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/135.0 Mobile/15E148 Safari/605.1.15",
-    
-    # ========== ANDROID WEBVIEW ==========
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; SM-A536B) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== LEGACY DEVICES (Untuk diversifikasi) ==========
-    "Mozilla/5.0 (Linux; Android 12; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 11; SM-G960F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.5993.111 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.5790.136 Mobile Safari/537.36",
-    
-    # ========== TABLETS ==========
-    "Mozilla/5.0 (Linux; Android 14; SM-X910) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; SM-X616B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Safari/537.36",
-    "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 14; Lenovo TB-X606F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Safari/537.36",
-    
-    # ========== SMART TV / GAME CONSOLES ==========
-    "Mozilla/5.0 (SMART-TV; Linux; Tizen 7.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/130.0.6723.120 TV Safari/537.36",
-    "Mozilla/5.0 (PlayStation 5; PlayStation 5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
-    "Mozilla/5.0 (Nintendo Switch; Nintendo) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
-    
-    # ========== BOTS (Untuk variasi) ==========
-    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-    "Mozilla/5.0 (compatible; Bingbot/2.0; +http://www.bing.com/bingbot.htm)",
-    "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
-    
-    # ========== TERMUX / CURL (Untuk realisme) ==========
-    "curl/8.5.0",
-    "Wget/1.21.4",
-    "Python-urllib/3.11",
-    
-    # ========== RANDOM OLD BROWSERS ==========
-    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
-    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; Trident/7.0; rv:11.0) like Gecko",
-    "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko",
-    "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; WOW64; Trident/4.0)",
-    
-    # ========== MOBILE EMULATION ==========
-    "Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 9; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 10; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== CUSTOM APPS ==========
-    "NGL-Spammer/4.0 (Termux; Android 14; SM-S928B) AppleWebKit/537.36",
-    "VoidNuker/5.0 (Termux; Linux; aarch64) AppleWebKit/537.36",
-    "DarkMasterWeb/1.0 (Android; U; en-US) AppleWebKit/537.36",
-    
-    # ========== UNIQUE RARE AGENTS ==========
-    "Mozilla/5.0 (X11; FreeBSD amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; OpenBSD amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; NetBSD amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; DragonFly amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-    
-    # ========== UNUSUAL COMBINATIONS ==========
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Vivaldi/6.7",
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 EdgA/115.0.0.0",
-    
-    # ========== EXPERIMENTAL ==========
-    "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; arm64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
-    
-    # ========== WINDOWS PHONE (Rare) ==========
-    "Mozilla/5.0 (Windows Phone 10.0; Android 6.0.1; Microsoft; Lumia 950) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 Edge/130.0.0.0",
-    
-    # ========== BLACKBERRY (Vintage) ==========
-    "Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+",
-    
-    # ========== SAMSUNG TIZEN ==========
-    "Mozilla/5.0 (Linux; Tizen 7.0; SAMSUNG SM-Z9005) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/130.0.6723.120 Mobile Safari/537.36",
-    
-    # ========== AMAZON FIRE ==========
-    "Mozilla/5.0 (Linux; Android 14; KFMAWI) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Silk/130.0.0.0",
-    
-    # ========== CUSTOM USER AGENTS ==========
-    "Mozilla/5.0 (compatible; VoidBot/1.0; +https://void.nuker)",
-    "Mozilla/5.0 (compatible; MarrBot/1.0; +https://marr.dev)",
-    "VoidNuker/5.0 Termux-Edition (Linux; Android 14; aarch64)",
-    "DarkMasterWeb-Void/4.0 (Android; Termux; en-US)",
-    
-    # ========== TERMUX SPECIFIC ==========
-    "Termux/0.118 (Linux; Android 14; aarch64) Python/3.11",
-    "Termux-Requests/2.31.0 (Linux; U; Android 14; en-US)",
-    
-    # ========== FORWARDED USER AGENTS ==========
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Via-Termux",
-    "Mozilla/5.0 (Android; Mobile; rv:135.0) Gecko/135.0 Firefox/135.0 Via-VoidNuker",
-    
-    # ========== RANDOMIZED ==========
-    f"Mozilla/5.0 (Linux; Android {random.randint(10, 15)}; SM-S{random.randint(900, 999)}B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{random.randint(120, 130)}.0.{random.randint(6000, 7000)}.{random.randint(100, 200)} Mobile Safari/537.36",
-    f"Mozilla/5.0 (iPhone; CPU iPhone OS {random.randint(15, 18)}_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/{random.randint(16, 18)}.0 Mobile/15E148 Safari/604.1",
+    # ... (lo bisa tambahin semua agent yang udah ada)
 ]
+# Generate tambahan biar gak kosong
+for i in range(50):
+    USER_AGENTS.append(f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.{random.randint(1000,9999)}.{random.randint(100,200)} Safari/537.36")
+    USER_AGENTS.append(f"Mozilla/5.0 (Linux; Android {random.randint(10,14)}; SM-S{random.randint(900,999)}B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.{random.randint(1000,9999)}.120 Mobile Safari/537.36")
 
-# Colors
-class Colors:
-    RED = '\033[91m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    MAGENTA = '\033[95m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    END = '\033[0m'
+ACCEPT_LANGS = ["en-US,en;q=0.9", "en-GB,en;q=0.8", "id-ID,id;q=0.9,en;q=0.7"]
+ACCEPT_ENCS = ["gzip, deflate, br", "identity"]
+REFFERERS = ["https://ngl.link/", "https://www.instagram.com/", "https://t.co/", ""]
 
-# ========== CORE FUNCTIONS ==========
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-def show_banner():
-    clear_screen()
-    print(BANNER)
-
-def print_colored(text, color=Colors.WHITE):
-    print(f"{color}{text}{Colors.END}")
-
-# ========== NGL SPAMMER CLASS ==========
-class VoidNuker:
-    def __init__(self):
+class MarrNuker:
+    def __init__(self, proxy_file=None):
         self.stats = {
             'sent': 0,
             'success': 0,
             'failed': 0,
-            'running': False,
-            'start_time': None
+            'rate_limited': 0,  # hitung retry karena 429
+            'running': True,
+            'lock': threading.Lock()
         }
-        self.threads = []
-        
-    def send_message(self, username, message):
-        """Send single message to NGL"""
-        url = f"https://ngl.link/api/submit"
-        
+        self.proxies = []
+        if proxy_file and os.path.exists(proxy_file):
+            with open(proxy_file) as f:
+                self.proxies = [line.strip() for line in f if line.strip()]
+
+    def _get_session(self):
+        s = requests.Session()
+        ua = random.choice(USER_AGENTS)
         headers = {
-            'User-Agent': random.choice(USER_AGENTS),
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': ua,
+            'Accept': random.choice(['application/json', '*/*', 'text/html']),
+            'Accept-Language': random.choice(ACCEPT_LANGS),
+            'Accept-Encoding': random.choice(ACCEPT_ENCS),
             'Origin': 'https://ngl.link',
-            'Referer': f'https://ngl.link/{username}',
+            'Referer': random.choice(REFFERERS),
             'X-Requested-With': 'XMLHttpRequest'
         }
-        
-        payload = {
-            'username': username,
-            'question': message,
-            'deviceId': f"void_{random.randint(1000000, 9999999)}",
+        s.headers.update(headers)
+        if self.proxies:
+            proxy = random.choice(self.proxies)
+            s.proxies = {'http': proxy, 'https': proxy}
+        return s
+
+    def _obfuscate_text(self, text):
+        # Sedikit variasi biar gak monoton
+        methods = [
+            lambda t: t.replace('a', 'а'),
+            lambda t: t.replace('e', 'е'),
+            lambda t: ''.join(c + '\u200B' if random.random() > 0.8 else c for c in t),
+            lambda t: t
+        ]
+        return random.choice(methods)(text)
+
+    def _craft_payload(self, target, message):
+        device_templates = [
+            f"android_{random.randint(1000000, 9999999)}",
+            f"ios_{random.randint(1000000, 9999999)}",
+            f"web_{random.randint(1000000, 9999999)}",
+            uuid.uuid4().hex[:16]
+        ]
+        return {
+            'username': target,
+            'question': self._obfuscate_text(message),
+            'deviceId': random.choice(device_templates),
             'gameSlug': '',
-            'referrer': ''
+            'referrer': random.choice(['', '', 'instagram', 'tiktok', 'snapchat'])
         }
-        
-        try:
-            response = requests.post(url, data=payload, headers=headers, timeout=10)
-            self.stats['sent'] += 1
-            
-            if response.status_code == 200:
-                self.stats['success'] += 1
-                return True
-            else:
-                self.stats['failed'] += 1
-                return False
-        except Exception:
-            self.stats['failed'] += 1
-            return False
-    
-    def worker(self, worker_id, username, messages, delay, quantity):
-        """Worker thread"""
-        sent_count = 0
-        
-        while self.stats['running'] and (quantity == 0 or sent_count < quantity):
+
+    def _rate_limit_wait(self, retry_count):
+        """Exponential backoff + jitter untuk rate limit"""
+        base = min(60, 2 ** retry_count)  # max 60 detik
+        jitter = random.uniform(0, base * 0.5)
+        wait = base + jitter
+        time.sleep(wait)
+
+    def _worker(self, thread_id, target, messages, delay, total_per_thread, burst):
+        """Thread worker dengan rate limit handler dan target jumlah tertentu"""
+        session = self._get_session()
+        sent = 0
+        retry_count = 0
+        max_retry = 5
+
+        while self.stats['running'] and sent < total_per_thread:
             try:
-                message = random.choice(messages)
-                self.send_message(username, message)
-                sent_count += 1
+                msg = random.choice(messages)
+                payload = self._craft_payload(target, msg)
+                resp = session.post("https://ngl.link/api/submit", data=payload, timeout=10)
                 
-                # Update display every 5 messages
-                if sent_count % 5 == 0:
-                    self.display_stats()
-                
-                # Random delay
-                time.sleep(delay + random.uniform(0, 0.3))
-                
+                with self.stats['lock']:
+                    self.stats['sent'] += 1
+                    if resp.status_code == 200 and 'ok' in resp.text.lower():
+                        self.stats['success'] += 1
+                    elif resp.status_code == 429:
+                        self.stats['rate_limited'] += 1
+                        self.stats['failed'] += 1
+                        # Rate limit handler
+                        self._rate_limit_wait(retry_count)
+                        retry_count += 1
+                        if retry_count <= max_retry:
+                            session = self._get_session()  # ganti identitas
+                            continue  # jangan break, coba lagi tanpa hitung sent
+                        else:
+                            # Reset retry, lanjut aja
+                            retry_count = 0
+                    else:
+                        self.stats['failed'] += 1
+                        # Mungkin blokir lain
+                        if resp.status_code in [403]:
+                            session = self._get_session()
+                            time.sleep(random.uniform(2, 5))
+                sent += 1
+                # Delay normal
+                time.sleep(random.uniform(0.01, delay) if burst else random.uniform(delay/2, delay*2))
+                retry_count = 0  # reset jika sukses
             except Exception as e:
-                print_colored(f"[Thread-{worker_id}] Error: {e}", Colors.RED)
-                time.sleep(2)
-        
-        print_colored(f"[Thread-{worker_id}] Finished - {sent_count} sent", Colors.GREEN)
-    
-    def display_stats(self):
-        """Display live statistics"""
-        if not self.stats['start_time']:
-            return
-            
-        elapsed = time.time() - self.stats['start_time']
-        success_rate = (self.stats['success'] / self.stats['sent'] * 100) if self.stats['sent'] > 0 else 0
-        
-        clear_screen()
-        show_banner()
-        
-        print_colored(f"\n╔══════════════════════════════════════════╗", Colors.CYAN)
-        print_colored(f"║         LIVE ATTACK STATISTICS         ║", Colors.WHITE)
-        print_colored(f"╠══════════════════════════════════════════╣", Colors.CYAN)
-        print_colored(f"║ 🎯 Target: {self.config['username']:28} ║", Colors.YELLOW)
-        print_colored(f"║ 📤 Sent: {self.stats['sent']:<6} ✅ Success: {self.stats['success']:<6} ║", Colors.GREEN)
-        print_colored(f"║ ❌ Failed: {self.stats['failed']:<5} 📊 Rate: {success_rate:6.1f}% ║", Colors.RED)
-        print_colored(f"║ ⏱️  Time: {elapsed:6.1f}s 🧵 Threads: {len(self.threads):<4} ║", Colors.BLUE)
-        
-        if elapsed > 0:
-            speed = self.stats['sent'] / elapsed
-            print_colored(f"║ 🚀 Speed: {speed:6.1f}/s{' ' * 19}║", Colors.MAGENTA)
-        
-        print_colored(f"╚══════════════════════════════════════════╝", Colors.CYAN)
-        print_colored(f"\n[!] Press Ctrl+C to stop", Colors.YELLOW)
-    
-    def start_attack(self, config):
-        """Start the attack"""
-        self.config = config
+                with self.stats['lock']:
+                    self.stats['failed'] += 1
+                time.sleep(random.uniform(1, 3))
+        return sent
+
+    def launch_attack(self, target, messages, threads=10, delay=0.5, total_messages=0, burst=False):
+        """
+        total_messages: jumlah total pesan yang ingin dikirim.
+        Jika 0, berarti unlimited (tidak ada batasan).
+        """
         self.stats = {
             'sent': 0,
             'success': 0,
             'failed': 0,
+            'rate_limited': 0,
             'running': True,
-            'start_time': time.time()
+            'lock': threading.Lock()
         }
-        
-        print_colored(f"\n[+] Starting attack on @{config['username']}", Colors.GREEN)
-        print_colored(f"[+] Threads: {config['threads']} | Delay: {config['delay']}s", Colors.CYAN)
-        print_colored(f"[+] Quantity: {'Unlimited' if config['quantity'] == 0 else config['quantity']}", Colors.YELLOW)
-        
-        time.sleep(2)
-        
-        # Create threads
-        for i in range(config['threads']):
-            thread = threading.Thread(
-                target=self.worker,
-                args=(i+1, config['username'], config['messages'], 
-                      config['delay'], config['quantity']),
-                daemon=True
-            )
-            thread.start()
-            self.threads.append(thread)
-        
-        try:
-            # Monitor attack
-            while self.stats['running'] and any(t.is_alive() for t in self.threads):
-                time.sleep(0.5)
-                self.display_stats()
-                
-                # Check quantity limit
-                if config['quantity'] > 0 and self.stats['sent'] >= config['threads'] * config['quantity']:
-                    break
-                    
-        except KeyboardInterrupt:
-            print_colored("\n[!] Stopping attack...", Colors.RED)
-        
-        finally:
-            self.stop_attack()
-    
-    def stop_attack(self):
-        """Stop the attack"""
-        self.stats['running'] = False
-        time.sleep(1)
-        
-        # Final stats
-        elapsed = time.time() - self.stats['start_time']
-        success_rate = (self.stats['success'] / self.stats['sent'] * 100) if self.stats['sent'] > 0 else 0
-        
-        print_colored(f"\n════════════════════════════════════════", Colors.CYAN)
-        print_colored(f"           ATTACK COMPLETED           ", Colors.GREEN)
-        print_colored(f"════════════════════════════════════════", Colors.CYAN)
-        print_colored(f"🎯 Target: {self.config['username']}", Colors.YELLOW)
-        print_colored(f"✅ Success: {self.stats['success']}", Colors.GREEN)
-        print_colored(f"❌ Failed: {self.stats['failed']}", Colors.RED)
-        print_colored(f"📤 Total: {self.stats['sent']}", Colors.CYAN)
-        print_colored(f"📊 Rate: {success_rate:.1f}%", Colors.MAGENTA)
-        print_colored(f"⏱️  Time: {elapsed:.1f}s", Colors.BLUE)
-        
-        if elapsed > 0:
-            speed = self.stats['sent'] / elapsed
-            print_colored(f"🚀 Speed: {speed:.1f}/s", Colors.GREEN)
-        
-        print_colored(f"════════════════════════════════════════", Colors.CYAN)
-        
-        # Save results
-        self.save_results(elapsed, success_rate)
-    
-    def save_results(self, elapsed, success_rate):
-        """Save results to file"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"void_results_{timestamp}.txt"
-        
-        try:
-            with open(filename, 'w') as f:
-                f.write(f"VOID NUKER Attack Results\n")
-                f.write(f"Time: {timestamp}\n")
-                f.write(f"Target: {self.config['username']}\n")
-                f.write(f"Success: {self.stats['success']}\n")
-                f.write(f"Failed: {self.stats['failed']}\n")
-                f.write(f"Total: {self.stats['sent']}\n")
-                f.write(f"Success Rate: {success_rate:.1f}%\n")
-                f.write(f"Duration: {elapsed:.1f}s\n")
-                f.write(f"Threads: {self.config['threads']}\n")
-                f.write(f"Developer: {DEVELOPER}\n")
-            
-            print_colored(f"[+] Results saved to {filename}", Colors.GREEN)
-        except Exception as e:
-            print_colored(f"[!] Failed to save: {e}", Colors.RED)
-
-# ========== MAIN MENU ==========
-def main_menu():
-    """Main menu interface"""
-    spammer = VoidNuker()
-    
-    while True:
-        show_banner()
-        
-        print_colored(f"\n╔══════════════════════════════════╗", Colors.CYAN)
-        print_colored(f"║            MAIN MENU                  ║", Colors.WHITE)
-        print_colored(f"╠══════════════════════════════════╣", Colors.CYAN)
-        print_colored(f"║ 1️⃣  Plenger Attack                    ║", Colors.GREEN)
-        print_colored(f"║ 2️⃣  Custom Attack Bwabwa              ║", Colors.YELLOW)
-        print_colored(f"║ 3️⃣  View Results                      ║", Colors.BLUE)
-        print_colored(f"║ 4️⃣  Exit                              ║", Colors.RED)
-        print_colored(f"╚══════════════════════════════════╝", Colors.CYAN)
-        
-        choice = input(f"\n{Colors.CYAN}[?] Select (1-4): {Colors.END}").strip()
-        
-        if choice == '1':
-            username = input(f"{Colors.CYAN}[?] NGL Username: {Colors.END}").strip()
-            if username:
-                config = {
-                    'username': username,
-                    'messages': [
-                        "VOID NUKER ACTIVATED 🚀",
-                        "TERMUX POWER ⚡",
-                        "MARRIAGE OF CHAOS 💀",
-                        "UNLIMITED SPAM 🔥"
-                    ],
-                    'threads': 10,
-                    'delay': 0.5,
-                    'quantity': 0  # Unlimited
-                }
-                
-                print_colored(f"\n[!] Starting attack on @{username}", Colors.YELLOW)
-                print_colored(f"[!] Press Ctrl+C to stop anytime", Colors.RED)
-                time.sleep(2)
-                
-                spammer.start_attack(config)
-                input(f"\n{Colors.CYAN}[?] Press Enter to continue...{Colors.END}")
-        
-        elif choice == '2':
-            show_banner()
-            
-            username = input(f"{Colors.CYAN}[?] NGL Username: {Colors.END}").strip()
-            if not username:
-                continue
-            
-            # Messages
-            print_colored(f"\n[*] Messages (Enter empty to use default)", Colors.YELLOW)
-            messages = []
-            while True:
-                msg = input(f"{Colors.CYAN}[?] Message {len(messages)+1}: {Colors.END}").strip()
-                if not msg:
-                    if not messages:
-                        messages = ["VOID ATTACK 🌀", "TERMUX EDITION 📱", "MARRIAGE 👑"]
-                    break
-                messages.append(msg)
-            
-            # Threads
-            try:
-                threads = int(input(f"{Colors.CYAN}[?] Threads (1-150): {Colors.END}") or "10")
-                threads = max(1, min(150, threads))
-            except:
-                threads = 10
-            
-            # Delay
-            try:
-                delay = float(input(f"{Colors.CYAN}[?] Delay (seconds): {Colors.END}") or "0.5")
-                delay = max(0.1, delay)
-            except:
-                delay = 0.5
-            
-            # Quantity
-            try:
-                quantity = int(input(f"{Colors.CYAN}[?] Messages per thread (0=unlimited): {Colors.END}") or "0")
-            except:
-                quantity = 0
-            
-            config = {
-                'username': username,
-                'messages': messages,
-                'threads': threads,
-                'delay': delay,
-                'quantity': quantity
-            }
-            
-            print_colored(f"\n[!] Starting attack with {threads} threads", Colors.YELLOW)
-            time.sleep(2)
-            
-            spammer.start_attack(config)
-            input(f"\n{Colors.CYAN}[?] Press Enter to continue...{Colors.END}")
-        
-        elif choice == '3':
-            show_banner()
-            print_colored(f"\n[*] Saved Results", Colors.CYAN)
-            
-            # List result files
-            result_files = [f for f in os.listdir('.') if f.startswith('void_results_') and f.endswith('.txt')]
-            
-            if not result_files:
-                print_colored("[!] No results found", Colors.YELLOW)
-            else:
-                for i, f in enumerate(sorted(result_files, reverse=True)[:5], 1):
-                    print_colored(f"{i}. {f}", Colors.WHITE)
-            
-            input(f"\n{Colors.CYAN}[?] Press Enter to continue...{Colors.END}")
-        
-        elif choice == '4':
-            print_colored(f"\n[*] Exiting VOID NUKER...", Colors.RED)
-            time.sleep(1)
-            clear_screen()
-            break
-        
+        if total_messages == 0:
+            # Unlimited: setiap thread jalan tanpa batas (quantity infinite)
+            per_thread = float('inf')
         else:
-            print_colored(f"\n[!] Invalid choice", Colors.RED)
-            time.sleep(1)
+            # Bagi rata ke semua thread, sisanya ditanggung thread pertama
+            per_thread_base = total_messages // threads
+            remainder = total_messages % threads
+            # Kita akan set per thread dengan nilai integer
+            # Kirim parameter "total_per_thread" ke worker, untuk thread[i] = per_thread_base + (1 if i < remainder else 0)
+            # Gunakan closure atau kirim via list
+            per_thread_list = [per_thread_base + (1 if i < remainder else 0) for i in range(threads)]
+        
+        print(f"\n{Fore.GREEN}[+] Meluncurkan serangan ke @{target}")
+        print(f"{Fore.CYAN}[+] {threads} Thread | Delay: {delay}s | Mode: {'BURST' if burst else 'NORMAL'}")
+        if total_messages > 0:
+            print(f"[+] Target total pesan: {total_messages}")
+        else:
+            print(f"[+] Unlimited mode")
+        print(f"{Style.RESET_ALL}\n")
 
-# ========== MAIN EXECUTION ==========
+        start_time = time.time()
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = []
+            for i in range(threads):
+                # Tentukan jumlah per thread untuk thread ini
+                if total_messages == 0:
+                    tq = float('inf')
+                else:
+                    tq = per_thread_list[i]
+                futures.append(executor.submit(self._worker, i+1, target, messages, delay, tq, burst))
+            
+            # Progress bar dengan tqdm yang bisa menangani unknown total jika unlimited
+            pbar = tqdm(total=total_messages if total_messages > 0 else None,
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]' if total_messages > 0 else '{l_bar}{bar}| {n_fmt} [{elapsed}, {rate_fmt}]',
+                        desc="Spamming")
+            try:
+                while self.stats['running']:
+                    pbar.n = self.stats['sent']
+                    pbar.set_postfix(Success=self.stats['success'], Failed=self.stats['failed'],
+                                     RateLimited=self.stats['rate_limited'],
+                                     Rate=f"{self.stats['sent']/(time.time()-start_time):.1f}/s")
+                    pbar.refresh()
+                    time.sleep(0.1)
+                    # Cek apakah semua future selesai
+                    if all(f.done() for f in futures):
+                        break
+            except KeyboardInterrupt:
+                self.stats['running'] = False
+                print(f"\n{Fore.RED}[!] Dihentikan oleh pengguna.{Style.RESET_ALL}")
+            finally:
+                pbar.close()
+
+        elapsed = time.time() - start_time
+        success_rate = (self.stats['success']/self.stats['sent']*100) if self.stats['sent']>0 else 0
+        print(f"\n{Fore.YELLOW}═══ HASIL AKHIR ═══")
+        print(f"✓ Terkirim: {self.stats['sent']}")
+        print(f"✓ Sukses: {self.stats['success']} ({success_rate:.1f}%)")
+        print(f"✓ Gagal: {self.stats['failed']}")
+        print(f"✓ Rate Limit (429): {self.stats['rate_limited']}")
+        print(f"✓ Durasi: {elapsed:.1f}s")
+        if elapsed > 0:
+            print(f"✓ Kecepatan: {self.stats['sent']/elapsed:.1f} msg/s")
+        print(Style.RESET_ALL)
+
+# ========== MENU UTAMA ==========
+def main():
+    os.system('clear')
+    print(BANNER)
+    
+    target = input(f"{Fore.CYAN}[?] Username NGL target: {Style.RESET_ALL}").strip()
+    if not target: return
+    
+    # Custom pesan
+    print(f"\n{Fore.YELLOW}--- Custom Pesan ---{Style.RESET_ALL}")
+    print("Masukkan pesan spam (satu per baris). Ketik 'done' jika selesai.")
+    custom_msgs = []
+    while True:
+        msg = input(f"{Fore.CYAN}  Pesan: {Style.RESET_ALL}")
+        if msg.lower() == 'done':
+            break
+        elif msg.strip() == '':
+            continue
+        custom_msgs.append(msg.strip())
+    if not custom_msgs:
+        # Default
+        custom_msgs = [
+            "VOID NUKER X - MARR EDITION",
+            "CHAOS IS HERE",
+            "BERGABUNGLAH DENGAN KEKUATAN GELAP",
+            "TIDAK ADA YANG AMAN"
+        ]
+        print(f"{Fore.GREEN}[!] Menggunakan pesan default.{Style.RESET_ALL}")
+    
+    # Threads
+    threads = int(input(f"{Fore.CYAN}[?] Jumlah Thread (1-200): {Style.RESET_ALL}") or 10)
+    
+    # Delay
+    delay = float(input(f"{Fore.CYAN}[?] Delay per pesan (detik, 0.1-5): {Style.RESET_ALL}") or 0.5)
+    
+    # Jumlah total pesan (quantity)
+    qty_input = input(f"{Fore.CYAN}[?] Total pesan yang dikirim (0 = unlimited): {Style.RESET_ALL}")
+    try:
+        total_msgs = int(qty_input) if qty_input.strip() else 0
+    except:
+        total_msgs = 0
+    
+    # Mode burst?
+    burst_in = input(f"{Fore.CYAN}[?] Mode (NORMAL/BURST): {Style.RESET_ALL}").strip().lower()
+    burst = burst_in == 'burst'
+    
+    nuker = MarrNuker(proxy_file="proxies.txt" if os.path.exists("proxies.txt") else None)
+    nuker.launch_attack(target, custom_msgs, threads, delay, total_msgs, burst)
+
 if __name__ == "__main__":
     try:
-        # Welcome message
-        show_banner()
-        print_colored(f"\n[*] VOID NUKER v{VERSION} - Ready for Action!", Colors.GREEN)
-        print_colored(f"[*] Developer: {DEVELOPER}", Colors.CYAN)
-        print_colored(f"[*] Platform: Termux (Android)", Colors.YELLOW)
-        print_colored(f"[!] Hanya Untuk Edukasi", Colors.RED)
-        time.sleep(2)
-        
-        # Start main menu
-        main_menu()
-        
+        main()
     except KeyboardInterrupt:
-        print_colored(f"\n[!] Interrupted by user", Colors.RED)
+        print(f"\n{Fore.RED}[!] Keluar.{Style.RESET_ALL}")
     except Exception as e:
-        print_colored(f"\n[!] Error: {e}", Colors.RED)
+        print(f"{Fore.RED}[!] Error: {e}{Style.RESET_ALL}")
